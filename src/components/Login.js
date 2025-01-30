@@ -13,8 +13,8 @@ function Login() {
     setError(null);
 
     const endpoint = isRegistering
-      ? "http://localhost:8080/api/users/register"
-      : "http://localhost:8080/api/users/login";
+      ? "https://venomous-plant-fb14f0407ddd.herokuapp.com/api/users/register"
+      : "https://venomous-plant-fb14f0407ddd.herokuapp.com/api/users/login";
 
     try {
       const response = await fetch(endpoint, {

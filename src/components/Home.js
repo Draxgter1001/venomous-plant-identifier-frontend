@@ -46,7 +46,7 @@ function Home() {
     const userEmail = localStorage.getItem("userEmail") || null;
   
     try {
-      const response = await fetch("http://localhost:8080/api/plants/identify", {
+      const response = await fetch("https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/identify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,7 +67,7 @@ function Home() {
       setPlantToken(result.token);
   
       const detailsResponse = await fetch(
-        `http://localhost:8080/api/plants/details/${result.token}`
+        `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/details/${result.token}`
       );
       const details = await detailsResponse.json();
       setPlantDetails(details);
@@ -80,7 +80,7 @@ function Home() {
   const fetchUserPlants = async (userEmail) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/api/plants/user-plants/${userEmail}`
+        `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/user-plants/${userEmail}`
       );
       const plants = await response.json();
       setPastIdentifications(plants);
@@ -92,7 +92,7 @@ function Home() {
   const deletePlant = async (accessToken) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/api/plants/delete/${accessToken}`,
+        `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/delete/${accessToken}`,
         { method: "DELETE" }
       );
       if (!response.ok) {
