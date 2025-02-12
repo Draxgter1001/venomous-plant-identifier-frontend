@@ -2,17 +2,26 @@ import React, { useState, useRef, useEffect } from "react";
 import Webcam from "react-webcam";
 import '../static/Home.css'
 
-function Home() {
-  const [imageBase64, setImageBase64] = useState("");
-  const [plantToken, setPlantToken] = useState(null);
-  const [plantDetails, setPlantDetails] = useState(null);
-  const [pastIdentifications, setPastIdentifications] = useState([]);
-  const [error, setError] = useState(null);
-  const [showWebcam, setShowWebcam] = useState(false);
-  const [isNotPlant, setIsNotPlant] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const webcamRef = useRef(null);
+/**
+Main component for plant identification featuring:
+Image capture via webcam/file upload
+Plant identification API integration
+Display of plant details and historical records
+User session management
+*/
 
+function Home() {
+  const [imageBase64, setImageBase64] = useState(""); // Stores base64 of captured/uploaded image
+  const [plantToken, setPlantToken] = useState(null); // Access token from identification API
+  const [plantDetails, setPlantDetails] = useState(null); // Parsed plant details object
+  const [pastIdentifications, setPastIdentifications] = useState([]); // User's historical identifications
+  const [error, setError] = useState(null); // Error message handling
+  const [showWebcam, setShowWebcam] = useState(false); // Webcam interface visibility
+  const [isNotPlant, setIsNotPlant] = useState(false);  // Flag for non-plant images
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // User authentication status
+  const webcamRef = useRef(null); // Reference to webcam component
+
+  // Check authentication status and load history on component mount
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
     if (userEmail) {
@@ -21,12 +30,14 @@ function Home() {
     }
   }, []);
 
+  // Captures image from webcam and stores as base64
   const captureFromWebcam = () => {
     const imageSrc = webcamRef.current.getScreenshot();
     setImageBase64(imageSrc);
     setShowWebcam(false);
   };
 
+  // Handles file selection from device storage
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -38,6 +49,7 @@ function Home() {
     reader.readAsDataURL(file);
   };
 
+  //  Submits image to identification API and processes response
   const identifyPlant = async () => {
     setError(null);
     setPlantDetails(null);
@@ -46,6 +58,7 @@ function Home() {
     const userEmail = localStorage.getItem("userEmail") || null;
   
     try {
+      // API call to backend identification endpoint
       const response = await fetch("https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/identify", {
         method: "POST",
         headers: {
@@ -58,14 +71,16 @@ function Home() {
       if (!response.ok) {
         throw new Error(result.message || "Error identifying plant");
       }
-  
+      
+      // Handle non-plant detection
       if (result.token === "The image is not a plant!") {
         setIsNotPlant(true);
         return;
       }
   
       setPlantToken(result.token);
-  
+      
+      // Fetch detailed plant information using access token
       const detailsResponse = await fetch(
         `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/details/${result.token}`
       );
@@ -77,6 +92,7 @@ function Home() {
     }
   };
 
+  // Fetches user's historical plant identifications
   const fetchUserPlants = async (userEmail) => {
     try {
       const response = await fetch(
@@ -89,6 +105,7 @@ function Home() {
     }
   };
 
+  // Deletes a plant record from user's history
   const deletePlant = async (accessToken) => {
     try {
       const response = await fetch(
@@ -152,12 +169,14 @@ function Home() {
         </div>
       )}
 
+      {/* Identification Trigger */}
       {imageBase64 && (
         <div style={{ marginTop: "20px" }}>
           <button onClick={identifyPlant}>Identify Plant</button>
         </div>
       )}
 
+      {/* System Messages */}
       {isNotPlant && (
         <div style={{ color: "orange", marginTop: "20px" }}>
           <strong>Notice:</strong> The uploaded image is not a plant or does not contain a plant.
@@ -176,6 +195,7 @@ function Home() {
         </div>
       )}
 
+      {/* Results Display */}
       {plantDetails && (
         <div style={{ marginTop: "20px" }}>
           <h2>Plant Details</h2>
@@ -193,6 +213,7 @@ function Home() {
         </div>
       )}
 
+      {/* Historical Records */}
       {isLoggedIn && pastIdentifications.length > 0 && (
         <div style={{ marginTop: "20px" }}>
           <h2>Your Past Identifications</h2>
