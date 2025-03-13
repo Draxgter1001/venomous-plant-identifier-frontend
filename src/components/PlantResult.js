@@ -3,7 +3,7 @@ import "../static/PlantResult.css";
 function PlantResult({ plantDetails, plantToken }) {
     if (!plantDetails) return null;
   
-    const isToxic = plantDetails.toxicity && plantDetails.toxicity.toLowerCase() !== "non-toxic";
+    const isToxic = plantDetails.toxicity && !plantDetails.toxicity.toLowerCase().includes("non-toxic");
   
     return (
       <div className="plant-card">
