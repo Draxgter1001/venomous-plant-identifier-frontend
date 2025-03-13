@@ -95,6 +95,31 @@ body {
   background-color: #ffffff;
 }
 
+.logout-btn {
+  display: inline-block;
+  transition: all 0.2s ease-in;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  color: #090909;
+  padding: 0.7em 1.7em;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 0.5em;
+  background: #e8e8e8;
+  border: 1px solid #e8e8e8;
+  box-shadow: 6px 6px 12px #c5c5c5, -6px -6px 12px #ffffff;
+}
+
+.logout-btn:active{
+  color: #666;
+  box-shadow: inset 4px 4px 12px #c5c5c5, inset -4px -4px 12px #ffffff;
+}
+
+.logout-btn:hover {
+  background-color: darkred;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .menu-icon {
@@ -133,5 +158,10 @@ body {
   .nav-elements ul a {
     color: white;
     font-size: 18px;
+  }
+
+  .logout-btn {
+    width: 100%;
+    text-align: center;
   }
 }

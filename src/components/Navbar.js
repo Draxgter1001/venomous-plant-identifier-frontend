@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import "../static/Navbar.css";
 
 function Navbar() {
   const [showNavbar, setShowNavbar] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const userEmail = localStorage.getItem("userEmail");
+    setIsLoggedIn(!!userEmail);
+  }, []);
 
   const handleShowNavbar = () => {
     setShowNavbar(!showNavbar);
@@ -24,11 +30,19 @@ function Navbar() {
                 Home
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/login" onClick={() => setShowNavbar(false)}>
-                Login
-              </NavLink>
-            </li>
+            {!isLoggedIn ? (
+              <li>
+                <NavLink to="/login" onClick={() => setShowNavbar(false)}>
+                  Login
+                </NavLink>
+              </li>
+            ) : (
+              <li>
+                <NavLink to="/login" className="logout-btn">
+                  Logout
+                </NavLink>
+              </li>
+            )}
           </ul>
         </div>
       </div>

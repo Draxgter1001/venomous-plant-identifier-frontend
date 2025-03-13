@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 /**
   Authentication component handling:
-  User login and registration flows
+  User login, registration, and logout flows
   Session management via local storage
   Integration with backend authentication API
 */
@@ -14,7 +14,16 @@ function Login() {
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false); // Toggle between login/register
   const [error, setError] = useState(null); // Error message display
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login status
   const navigate = useNavigate(); // Navigation hook for post-login redirect
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const userEmail = localStorage.getItem("userEmail");
+    if (userEmail) {
+      setIsLoggedIn(true);
+    }
+  }, []);
 
   /**
     Handles form submission for both login and registration
@@ -32,14 +41,12 @@ function Login() {
     try {
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.text(); // Expect a text response like "User registered successfully" or "Login successful"
+      const data = await response.text();
       if (!response.ok) {
         throw new Error(data);
       }
@@ -47,70 +54,105 @@ function Login() {
       if (!isRegistering) {
         // Save user email to local storage on login
         localStorage.setItem("userEmail", email);
+        setIsLoggedIn(true);
         alert("Login successful");
-        navigate("/"); // Redirect to the home page after login
+        navigate("/"); // Redirect to home page
       } else {
-        alert(data); // Show success message for registration
-        setIsRegistering(false); // Switch to login view
+        alert(data);
+        setIsRegistering(false);
       }
     } catch (err) {
       setError(err.message);
     }
   };
 
+  // Handle user logout
+  const handleLogout = () => {
+    localStorage.removeItem("userEmail"); // Remove user session
+    setIsLoggedIn(false);
+    navigate("/"); // Redirect to home page
+  };
+
   return (
     <div style={{ padding: "20px", maxWidth: "400px", margin: "0 auto" }}>
-      <h1>{isRegistering ? "Register" : "Login"}</h1>
-
-      {/* Error message display */}
-      {error && (
-        <div style={{ color: "red", marginBottom: "10px" }}>
-          <strong>Error:</strong> {error}
+      {/* If logged in, show logout button */}
+      {isLoggedIn ? (
+        <div style={{ textAlign: "center" }}>
+          <h2>Welcome!</h2>
+          <p>You are logged in.</p>
+          <button
+            onClick={handleLogout}
+            style={{
+              backgroundColor: "red",
+              color: "white",
+              padding: "10px",
+              borderRadius: "5px",
+              border: "none",
+              cursor: "pointer",
+              width: "100%",
+            }}
+          >
+            Logout
+          </button>
         </div>
+      ) : (
+        <>
+          <h1>{isRegistering ? "Register" : "Login"}</h1>
+
+          {/* Error message display */}
+          {error && (
+            <div style={{ color: "red", marginBottom: "10px" }}>
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            {/* Email input */}
+            <div style={{ marginBottom: "10px" }}>
+              <label>Email:</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
+              />
+            </div>
+
+            {/* Password input */}
+            <div style={{ marginBottom: "10px" }}>
+              <label>Password:</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{ width: "100%", padding: "8px", marginTop: "5px" }}
+              />
+            </div>
+            
+            {/* Submit button */}
+            <button
+              type="submit"
+              style={{ width: "100%", padding: "10px", marginTop: "10px" }}
+            >
+              {isRegistering ? "Register" : "Login"}
+            </button>
+          </form>
+
+          {/* Toggle between login/register */}
+          <div style={{ marginTop: "10px", textAlign: "center" }}>
+            <button
+              onClick={() => setIsRegistering(!isRegistering)}
+              style={{ padding: "5px" }}
+            >
+              {isRegistering
+                ? "Already have an account? Login"
+                : "Don't have an account? Register"}
+            </button>
+          </div>
+        </>
       )}
-
-      <form onSubmit={handleSubmit}>
-        {/* Email input field */}
-        <div style={{ marginBottom: "10px" }}>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-          />
-        </div>
-
-        {/* Password input field */}
-        <div style={{ marginBottom: "10px" }}>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-          />
-        </div>
-        
-        {/* Submit button */}
-        <button type="submit" style={{ width: "100%", padding: "10px", marginTop: "10px" }}>
-          {isRegistering ? "Register" : "Login"}
-        </button>
-      </form>
-      
-      {/* Toggle login/register view */}
-      <div style={{ marginTop: "10px", textAlign: "center" }}>
-        <button
-          onClick={() => setIsRegistering(!isRegistering)}
-          style={{ padding: "5px" }}
-        >
-          {isRegistering
-            ? "Already have an account? Login"
-            : "Don't have an account? Register"}
-        </button>
-      </div>
     </div>
   );
 }
