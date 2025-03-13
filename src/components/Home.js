@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Webcam from "react-webcam";
 import '../static/Home.css'
+import PlantResult from "./PlantResult";
 
 /**
 Main component for plant identification featuring:
@@ -198,18 +199,7 @@ function Home() {
       {/* Results Display */}
       {plantDetails && (
         <div style={{ marginTop: "20px" }}>
-          <h2>Plant Details</h2>
-          <p><strong>Name:</strong> {plantDetails.name}</p>
-          <p><strong>Common Names:</strong> {plantDetails.common_names.join(", ")}</p>
-          <p><strong>URL:</strong> <a href={plantDetails.url} target="_blank" rel="noreferrer">{plantDetails.url}</a></p>
-          <p><strong>Description:</strong> {plantDetails.description}</p>
-          <p><strong>Synonyms:</strong> {plantDetails.synonyms.join(", ")}</p>
-          <p><strong>Toxicity:</strong> {plantDetails.toxicity}</p>
-          <img
-            src={plantDetails.image}
-            alt={plantDetails.name}
-            style={{ maxWidth: "300px", border: "1px solid #ccc", marginTop: "10px" }}
-          />
+          <PlantResult plantDetails={plantDetails} plantToken={plantToken} />
         </div>
       )}
 

@@ -1,0 +1,55 @@
+.plant-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 600px;
+    margin: 20px auto;
+    text-align: center;
+    border-left: 6px solid #4CAF50; /* Green border for styling */
+}
+
+.venom-status {
+    font-size: 22px;
+    font-weight: bold;
+    padding: 10px;
+}
+
+.venomous {
+    color: red;
+}
+
+.non-venomous {
+    color: green;
+}
+
+.plant-info {
+    text-align: left;
+    margin-top: 10px;
+}
+
+.plant-info p {
+    margin: 8px 0;
+}
+
+.plant-info a {
+    color: #007BFF;
+    text-decoration: none;
+}
+
+.plant-info a:hover {
+    text-decoration: underline;
+}
+
+.plant-image {
+    width: 100%;
+    max-width: 300px;
+    margin-top: 15px;
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    .plant-card {
+        width: 90%;
+    }
+}
