@@ -6,21 +6,23 @@
     max-width: 600px;
     margin: 20px auto;
     text-align: center;
-    border-left: 6px solid #4CAF50; /* Green border for styling */
+    border-left: 6px solid #4CAF50; /* Default green border */
 }
 
-.venom-status {
+.toxicity-status {
     font-size: 22px;
     font-weight: bold;
     padding: 10px;
 }
 
-.venomous {
+.toxic {
     color: red;
+    border-left-color: red; /* Red border for toxic plants */
 }
 
-.non-venomous {
+.non-toxic {
     color: green;
+    border-left-color: green; /* Green border for non-toxic plants */
 }
 
 .plant-info {
