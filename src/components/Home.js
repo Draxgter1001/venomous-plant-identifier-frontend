@@ -190,12 +190,6 @@ function Home() {
         </div>
       )}
 
-      {plantToken && (
-        <div style={{ marginTop: "20px" }}>
-          <strong>Token:</strong> {plantToken}
-        </div>
-      )}
-
       {/* Results Display */}
       {plantDetails && (
         <div style={{ marginTop: "20px" }}>
