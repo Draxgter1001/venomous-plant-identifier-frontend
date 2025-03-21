@@ -21,6 +21,7 @@ function Home() {
   const [isNotPlant, setIsNotPlant] = useState(false);  // Flag for non-plant images
   const [isLoggedIn, setIsLoggedIn] = useState(false); // User authentication status
   const webcamRef = useRef(null); // Reference to webcam component
+  const API_URL = process.env.REACT_APP_API_URL || "https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants";
 
   // Check authentication status and load history on component mount
   useEffect(() => {
@@ -60,7 +61,7 @@ function Home() {
   
     try {
       // API call to backend identification endpoint
-      const response = await fetch("https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/identify", {
+      const response = await fetch(`${API_URL}/identify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,7 +84,7 @@ function Home() {
       
       // Fetch detailed plant information using access token
       const detailsResponse = await fetch(
-        `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/details/${result.token}`
+        `${API_URL}/details/${result.token}`
       );
       const details = await detailsResponse.json();
       setPlantDetails(details);
@@ -97,7 +98,7 @@ function Home() {
   const fetchUserPlants = async (userEmail) => {
     try {
       const response = await fetch(
-        `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/user-plants/${userEmail}`
+        `${API_URL}/user-plants/${userEmail}`
       );
       const plants = await response.json();
       setPastIdentifications(plants);
@@ -110,7 +111,7 @@ function Home() {
   const deletePlant = async (accessToken) => {
     try {
       const response = await fetch(
-        `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/delete/${accessToken}`,
+        `${API_URL}/delete/${accessToken}`,
         { method: "DELETE" }
       );
       if (!response.ok) {
