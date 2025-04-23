@@ -18,9 +18,11 @@ function Home() {
   const [pastIdentifications, setPastIdentifications] = useState([]); // User's historical identifications
   const [error, setError] = useState(null); // Error message handling
   const [showWebcam, setShowWebcam] = useState(false); // Webcam interface visibility
+  const [useFrontCamera, setUseFrontCamera] = useState(false); // Front camera toggle
   const [isNotPlant, setIsNotPlant] = useState(false);  // Flag for non-plant images
   const [isLoggedIn, setIsLoggedIn] = useState(false); // User authentication status
   const webcamRef = useRef(null); // Reference to webcam component
+  const resultRef = useRef(null); // Reference to result display component
   const API_URL = process.env.REACT_APP_API_URL || "https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants";
 
   // Check authentication status and load history on component mount
@@ -31,6 +33,12 @@ function Home() {
       fetchUserPlants(userEmail);
     }
   }, []);
+
+  useEffect(() => {
+    if (resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [plantDetails]);
 
   // Captures image from webcam and stores as base64
   const captureFromWebcam = () => {
@@ -127,54 +135,71 @@ function Home() {
     <div style={{ padding: "20px" }}>
       <h1>Plant Identifier</h1>
 
-      {/* Upload from Gallery */}
-      <button onClick={() => document.getElementById("galleryInput").click()}>
-        Upload from Gallery
-      </button>
-      <input
-        id="galleryInput"
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={handleFileChange}
-      />
-
-      {/* Take Photo with Webcam */}
-      <button onClick={() => setShowWebcam(true)}>Take a Photo</button>
+      <div className="button-group">
+        {/* Upload from Gallery */}
+        <button onClick={() => {
+          setImageBase64(""); // Clear previous preview 
+          setPlantDetails(null); // Clear previous details
+          setPlantToken(null); // Clear previous token
+          document.getElementById("galleryInput").click()
+          }}>
+            Upload from Gallery
+        </button>
+        <input
+          id="galleryInput"
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+        {/* Take Photo with Webcam */}
+        <button onClick={() => {
+          setImageBase64("");
+          setPlantDetails(null);
+          setPlantToken(null);
+          setShowWebcam(true); // Show webcam
+        }}>
+          Take a Photo
+        </button>
+      </div>
 
       {showWebcam && (
-        <div style={{ marginTop: "20px" }}>
+        <div className="preview-container">
           <Webcam
             audio={false}
             ref={webcamRef}
             screenshotFormat="image/jpeg"
+            videoConstraints={{
+              facingMode: useFrontCamera ? "user" : "environment",
+            }}
             style={{ width: "100%", maxWidth: "400px", border: "1px solid #ccc" }}
           />
-          <button onClick={captureFromWebcam} style={{ marginTop: "10px" }}>
-            Capture Photo
-          </button>
-          <button onClick={() => setShowWebcam(false)} style={{ marginLeft: "10px" }}>
-            Cancel
-          </button>
+          <div className="button-group">
+            <button onClick={captureFromWebcam} style={{ marginTop: "10px" }}>
+              Capture Photo
+            </button>
+            <button onClick={() => setShowWebcam(false)} style={{ marginLeft: "10px" }}>
+              Cancel
+            </button>
+            <button onClicjk={() => setUseFrontCamera(prev => !prev)}>
+              Switch Camera
+            </button>
+          </div>
         </div>
       )}
 
       {/* Preview Captured or Selected Image */}
       {imageBase64 && (
-        <div style={{ marginTop: "20px" }}>
+        <div className="preview-container">
           <h2>Preview:</h2>
           <img
             src={imageBase64}
             alt="Selected or Captured"
             style={{ maxWidth: "300px", border: "1px solid #ccc" }}
           />
-        </div>
-      )}
-
-      {/* Identification Trigger */}
-      {imageBase64 && (
-        <div style={{ marginTop: "20px" }}>
-          <button onClick={identifyPlant}>Identify Plant</button>
+          <button onClick={identifyPlant} style={{ marginTop: "15px" }}>
+            Identify Plant
+          </button>
         </div>
       )}
 
@@ -193,7 +218,7 @@ function Home() {
 
       {/* Results Display */}
       {plantDetails && (
-        <div style={{ marginTop: "20px" }}>
+        <div id="result-section" ref={resultRef} style={{ marginTop: "20px" }}>
           <PlantResult plantDetails={plantDetails} plantToken={plantToken} />
         </div>
       )}
