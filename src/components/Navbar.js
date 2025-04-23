@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import "../static/Navbar.css";
 
 function Navbar() {
   const [showNavbar, setShowNavbar] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem("userEmail"));
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("userEmail");
+    setIsLoggedIn(false);
+    window.location.href = "/";
+  };
 
   const handleShowNavbar = () => {
     setShowNavbar(!showNavbar);
@@ -24,11 +35,19 @@ function Navbar() {
                 Home
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/login" onClick={() => setShowNavbar(false)}>
-                Login
-              </NavLink>
-            </li>
+            {isLoggedIn ? (
+              <li>
+                <NavLink to="/" onClick={handleLogout} className="logout-button">
+                  Logout
+                </NavLink>
+              </li>
+            ) : (
+              <li>
+                <NavLink to="/login" onClick={() => setShowNavbar(false)}>
+                  Login
+                </NavLink>
+              </li>
+            )}
           </ul>
         </div>
       </div>
