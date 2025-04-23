@@ -16,7 +16,7 @@ function Home() {
 
   const webcamRef = useRef(null);
   const resultRef = useRef(null);
-  const API_URL = process.env.REACT_APP_API_URL || "https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants";
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api/plants";
 
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
