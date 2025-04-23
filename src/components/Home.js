@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
 import '../static/Home.css'
 import PlantResult from "./PlantResult";
@@ -23,6 +24,7 @@ function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // User authentication status
   const webcamRef = useRef(null); // Reference to webcam component
   const resultRef = useRef(null); // Reference to result display component
+  const navigate = useNavigate(); // Navigation hook for routing
   const API_URL = process.env.REACT_APP_API_URL || "https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants";
 
   // Check authentication status and load history on component mount
@@ -115,6 +117,12 @@ function Home() {
     }
   };
 
+  const logout = () => {
+    localStorage.removeItem("userEmail");
+    setIsLoggedIn(false);
+    navigate("/login");
+  }
+
   // Deletes a plant record from user's history
   const deletePlant = async (accessToken) => {
     try {
@@ -134,6 +142,17 @@ function Home() {
   return (
     <div style={{ padding: "20px" }}>
       <h1>Plant Identifier</h1>
+
+      {isLoggedIn && (
+        <div style={{ textAlign: "right", marginBottom: "20px" }}>
+          <span style={{ marginRight: "10px", fontWeight: "bold" }}>
+            Logged in as: {localStorage.getItem("userEmail")}
+          </span>
+          <button onClick={logout} style={{ cursor: "pointer" }}>
+            Logout
+          </button>
+        </div>
+      )}
 
       <div className="button-group">
         {/* Upload from Gallery */}
