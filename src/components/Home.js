@@ -18,9 +18,12 @@ function Home() {
   const [pastIdentifications, setPastIdentifications] = useState([]); // User's historical identifications
   const [error, setError] = useState(null); // Error message handling
   const [showWebcam, setShowWebcam] = useState(false); // Webcam interface visibility
+  const [useFrontCamera, setUseFrontCamera] = useState(false); // Front camera toggle
   const [isNotPlant, setIsNotPlant] = useState(false);  // Flag for non-plant images
   const [isLoggedIn, setIsLoggedIn] = useState(false); // User authentication status
   const webcamRef = useRef(null); // Reference to webcam component
+  const resultRef = useRef(null); // Reference to result display component
+  const API_URL = process.env.REACT_APP_API_URL || "https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants";
 
   // Check authentication status and load history on component mount
   useEffect(() => {
@@ -30,6 +33,12 @@ function Home() {
       fetchUserPlants(userEmail);
     }
   }, []);
+
+  useEffect(() => {
+    if (resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [plantDetails]);
 
   // Captures image from webcam and stores as base64
   const captureFromWebcam = () => {
@@ -60,7 +69,7 @@ function Home() {
   
     try {
       // API call to backend identification endpoint
-      const response = await fetch("https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/identify", {
+      const response = await fetch(`${API_URL}/identify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,7 +92,7 @@ function Home() {
       
       // Fetch detailed plant information using access token
       const detailsResponse = await fetch(
-        `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/details/${result.token}`
+        `${API_URL}/details/${result.token}`
       );
       const details = await detailsResponse.json();
       setPlantDetails(details);
@@ -97,7 +106,7 @@ function Home() {
   const fetchUserPlants = async (userEmail) => {
     try {
       const response = await fetch(
-        `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/user-plants/${userEmail}`
+        `${API_URL}/user-plants/${userEmail}`
       );
       const plants = await response.json();
       setPastIdentifications(plants);
@@ -110,7 +119,7 @@ function Home() {
   const deletePlant = async (accessToken) => {
     try {
       const response = await fetch(
-        `https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants/delete/${accessToken}`,
+        `${API_URL}/delete/${accessToken}`,
         { method: "DELETE" }
       );
       if (!response.ok) {
@@ -126,54 +135,71 @@ function Home() {
     <div style={{ padding: "20px" }}>
       <h1>Plant Identifier</h1>
 
-      {/* Upload from Gallery */}
-      <button onClick={() => document.getElementById("galleryInput").click()}>
-        Upload from Gallery
-      </button>
-      <input
-        id="galleryInput"
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={handleFileChange}
-      />
-
-      {/* Take Photo with Webcam */}
-      <button onClick={() => setShowWebcam(true)}>Take a Photo</button>
+      <div className="button-group">
+        {/* Upload from Gallery */}
+        <button onClick={() => {
+          setImageBase64(""); // Clear previous preview 
+          setPlantDetails(null); // Clear previous details
+          setPlantToken(null); // Clear previous token
+          document.getElementById("galleryInput").click()
+          }}>
+            Upload from Gallery
+        </button>
+        <input
+          id="galleryInput"
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+        {/* Take Photo with Webcam */}
+        <button onClick={() => {
+          setImageBase64("");
+          setPlantDetails(null);
+          setPlantToken(null);
+          setShowWebcam(true); // Show webcam
+        }}>
+          Take a Photo
+        </button>
+      </div>
 
       {showWebcam && (
-        <div style={{ marginTop: "20px" }}>
+        <div className="preview-container">
           <Webcam
             audio={false}
             ref={webcamRef}
             screenshotFormat="image/jpeg"
+            videoConstraints={{
+              facingMode: useFrontCamera ? "user" : "environment",
+            }}
             style={{ width: "100%", maxWidth: "400px", border: "1px solid #ccc" }}
           />
-          <button onClick={captureFromWebcam} style={{ marginTop: "10px" }}>
-            Capture Photo
-          </button>
-          <button onClick={() => setShowWebcam(false)} style={{ marginLeft: "10px" }}>
-            Cancel
-          </button>
+          <div className="button-group">
+            <button onClick={captureFromWebcam} style={{ marginTop: "10px" }}>
+              Capture Photo
+            </button>
+            <button onClick={() => setShowWebcam(false)} style={{ marginLeft: "10px" }}>
+              Cancel
+            </button>
+            <button onClicjk={() => setUseFrontCamera(prev => !prev)}>
+              Switch Camera
+            </button>
+          </div>
         </div>
       )}
 
       {/* Preview Captured or Selected Image */}
       {imageBase64 && (
-        <div style={{ marginTop: "20px" }}>
+        <div className="preview-container">
           <h2>Preview:</h2>
           <img
             src={imageBase64}
             alt="Selected or Captured"
             style={{ maxWidth: "300px", border: "1px solid #ccc" }}
           />
-        </div>
-      )}
-
-      {/* Identification Trigger */}
-      {imageBase64 && (
-        <div style={{ marginTop: "20px" }}>
-          <button onClick={identifyPlant}>Identify Plant</button>
+          <button onClick={identifyPlant} style={{ marginTop: "15px" }}>
+            Identify Plant
+          </button>
         </div>
       )}
 
@@ -192,7 +218,7 @@ function Home() {
 
       {/* Results Display */}
       {plantDetails && (
-        <div style={{ marginTop: "20px" }}>
+        <div id="result-section" ref={resultRef} style={{ marginTop: "20px" }}>
           <PlantResult plantDetails={plantDetails} plantToken={plantToken} />
         </div>
       )}
