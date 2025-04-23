@@ -12,14 +12,15 @@ function PlantResult({ plantDetails, plantToken }) {
         </h2>
   
         <div className="plant-info">
+
           <p><strong>Name:</strong> {plantDetails.name}</p>
+          <img src={plantDetails.image} alt={plantDetails.name} className="plant-image" />
           <p><strong>Common Names:</strong> {plantDetails.common_names.join(", ")}</p>
           <p><strong>URL:</strong> <a href={plantDetails.url} target="_blank" rel="noopener noreferrer">{plantDetails.url}</a></p>
           <p><strong>Description:</strong> {plantDetails.description}</p>
           <p><strong>Synonyms:</strong> {plantDetails.synonyms.join(", ")}</p>
           <p><strong>Toxicity:</strong> {plantDetails.toxicity}</p>
-          
-          <img src={plantDetails.image} alt={plantDetails.name} className="plant-image" />
+      
         </div>
       </div>
     );

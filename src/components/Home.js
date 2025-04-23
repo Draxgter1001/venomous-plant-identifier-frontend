@@ -1,33 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Webcam from "react-webcam";
-import '../static/Home.css'
+import "../static/Home.css";
 import PlantResult from "./PlantResult";
 
-/**
-Main component for plant identification featuring:
-Image capture via webcam/file upload
-Plant identification API integration
-Display of plant details and historical records
-User session management
-*/
-
 function Home() {
-  const [imageBase64, setImageBase64] = useState(""); // Stores base64 of captured/uploaded image
-  const [plantToken, setPlantToken] = useState(null); // Access token from identification API
-  const [plantDetails, setPlantDetails] = useState(null); // Parsed plant details object
-  const [pastIdentifications, setPastIdentifications] = useState([]); // User's historical identifications
-  const [error, setError] = useState(null); // Error message handling
-  const [showWebcam, setShowWebcam] = useState(false); // Webcam interface visibility
-  const [useFrontCamera, setUseFrontCamera] = useState(false); // Front camera toggle
-  const [isNotPlant, setIsNotPlant] = useState(false);  // Flag for non-plant images
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // User authentication status
-  const webcamRef = useRef(null); // Reference to webcam component
-  const resultRef = useRef(null); // Reference to result display component
-  const navigate = useNavigate(); // Navigation hook for routing
+  const [imageBase64, setImageBase64] = useState("");
+  const [plantToken, setPlantToken] = useState(null);
+  const [plantDetails, setPlantDetails] = useState(null);
+  const [pastIdentifications, setPastIdentifications] = useState([]);
+  const [error, setError] = useState(null);
+  const [showWebcam, setShowWebcam] = useState(false);
+  const [useFrontCamera, setUseFrontCamera] = useState(false);
+  const [isNotPlant, setIsNotPlant] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const webcamRef = useRef(null);
+  const resultRef = useRef(null);
   const API_URL = process.env.REACT_APP_API_URL || "https://venomous-plant-fb14f0407ddd.herokuapp.com/api/plants";
 
-  // Check authentication status and load history on component mount
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
     if (userEmail) {
@@ -42,74 +32,9 @@ function Home() {
     }
   }, [plantDetails]);
 
-  // Captures image from webcam and stores as base64
-  const captureFromWebcam = () => {
-    const imageSrc = webcamRef.current.getScreenshot();
-    setImageBase64(imageSrc);
-    setShowWebcam(false);
-  };
-
-  // Handles file selection from device storage
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImageBase64(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  //  Submits image to identification API and processes response
-  const identifyPlant = async () => {
-    setError(null);
-    setPlantDetails(null);
-    setIsNotPlant(false);
-  
-    const userEmail = localStorage.getItem("userEmail") || null;
-  
-    try {
-      // API call to backend identification endpoint
-      const response = await fetch(`${API_URL}/identify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ base64Image: imageBase64, userEmail }), // Fixed reference
-      });
-  
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || "Error identifying plant");
-      }
-      
-      // Handle non-plant detection
-      if (result.token === "The image is not a plant!") {
-        setIsNotPlant(true);
-        return;
-      }
-  
-      setPlantToken(result.token);
-      
-      // Fetch detailed plant information using access token
-      const detailsResponse = await fetch(
-        `${API_URL}/details/${result.token}`
-      );
-      const details = await detailsResponse.json();
-      setPlantDetails(details);
-    } catch (err) {
-      console.error("Error identifying plant:", err);
-      setError(err.message);
-    }
-  };
-
-  // Fetches user's historical plant identifications
   const fetchUserPlants = async (userEmail) => {
     try {
-      const response = await fetch(
-        `${API_URL}/user-plants/${userEmail}`
-      );
+      const response = await fetch(`${API_URL}/user-plants/${userEmail}`);
       const plants = await response.json();
       setPastIdentifications(plants);
     } catch (err) {
@@ -117,22 +42,69 @@ function Home() {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("userEmail");
-    setIsLoggedIn(false);
-    navigate("/login");
-  }
+  const handleImageSelection = (image) => {
+    setImageBase64(image);
+    const userEmail = localStorage.getItem("userEmail");
+    if (userEmail) fetchUserPlants(userEmail);
+  };
 
-  // Deletes a plant record from user's history
+  const captureFromWebcam = () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    handleImageSelection(imageSrc);
+    setShowWebcam(false);
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => handleImageSelection(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const identifyPlant = async () => {
+    setError(null);
+    setPlantDetails(null);
+    setIsNotPlant(false);
+
+    const userEmail = localStorage.getItem("userEmail");
+
+    try {
+      const response = await fetch(`${API_URL}/identify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ base64Image: imageBase64, userEmail }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Error identifying plant");
+
+      if (result.token === "The image is not a plant!") {
+        setIsNotPlant(true);
+        return;
+      }
+
+      setPlantToken(result.token);
+
+      const detailsResponse = await fetch(`${API_URL}/details/${result.token}`);
+      const details = await detailsResponse.json();
+      setPlantDetails(details);
+
+      if (userEmail) fetchUserPlants(userEmail);
+    } catch (err) {
+      console.error("Error identifying plant:", err);
+      setError(err.message);
+    }
+  };
+
   const deletePlant = async (accessToken) => {
     try {
-      const response = await fetch(
-        `${API_URL}/delete/${accessToken}`,
-        { method: "DELETE" }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to delete plant");
-      }
+      const response = await fetch(`${API_URL}/delete/${accessToken}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete plant");
+
       fetchUserPlants(localStorage.getItem("userEmail"));
     } catch (err) {
       console.error("Error deleting plant:", err);
@@ -143,27 +115,18 @@ function Home() {
     <div style={{ padding: "20px" }}>
       <h1>Plant Identifier</h1>
 
-      {isLoggedIn && (
-        <div style={{ textAlign: "right", marginBottom: "20px" }}>
-          <span style={{ marginRight: "10px", fontWeight: "bold" }}>
-            Logged in as: {localStorage.getItem("userEmail")}
-          </span>
-          <button onClick={logout} style={{ cursor: "pointer" }}>
-            Logout
-          </button>
-        </div>
-      )}
-
       <div className="button-group">
-        {/* Upload from Gallery */}
-        <button onClick={() => {
-          setImageBase64(""); // Clear previous preview 
-          setPlantDetails(null); // Clear previous details
-          setPlantToken(null); // Clear previous token
-          document.getElementById("galleryInput").click()
-          }}>
-            Upload from Gallery
+        <button
+          onClick={() => {
+            setImageBase64("");
+            setPlantDetails(null);
+            setPlantToken(null);
+            document.getElementById("galleryInput").click();
+          }}
+        >
+          Upload from Gallery
         </button>
+
         <input
           id="galleryInput"
           type="file"
@@ -171,13 +134,15 @@ function Home() {
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
-        {/* Take Photo with Webcam */}
-        <button onClick={() => {
-          setImageBase64("");
-          setPlantDetails(null);
-          setPlantToken(null);
-          setShowWebcam(true); // Show webcam
-        }}>
+
+        <button
+          onClick={() => {
+            setImageBase64("");
+            setPlantDetails(null);
+            setPlantToken(null);
+            setShowWebcam(true);
+          }}
+        >
           Take a Photo
         </button>
       </div>
@@ -200,14 +165,13 @@ function Home() {
             <button onClick={() => setShowWebcam(false)} style={{ marginLeft: "10px" }}>
               Cancel
             </button>
-            <button onClicjk={() => setUseFrontCamera(prev => !prev)}>
+            <button onClick={() => setUseFrontCamera((prev) => !prev)}>
               Switch Camera
             </button>
           </div>
         </div>
       )}
 
-      {/* Preview Captured or Selected Image */}
       {imageBase64 && (
         <div className="preview-container">
           <h2>Preview:</h2>
@@ -222,7 +186,6 @@ function Home() {
         </div>
       )}
 
-      {/* System Messages */}
       {isNotPlant && (
         <div style={{ color: "orange", marginTop: "20px" }}>
           <strong>Notice:</strong> The uploaded image is not a plant or does not contain a plant.
@@ -235,25 +198,41 @@ function Home() {
         </div>
       )}
 
-      {/* Results Display */}
       {plantDetails && (
-        <div id="result-section" ref={resultRef} style={{ marginTop: "20px" }}>
+        <div id="plant-result" ref={resultRef} style={{ marginTop: "20px" }}>
           <PlantResult plantDetails={plantDetails} plantToken={plantToken} />
         </div>
       )}
 
-      {/* Historical Records */}
       {isLoggedIn && pastIdentifications.length > 0 && (
-        <div style={{ marginTop: "20px" }}>
-          <h2>Your Past Identifications</h2>
-          <ul>
+        <div className="history-container">
+          <h2>My Past Identifications</h2>
+          <div className="history-grid">
             {pastIdentifications.map((plant) => (
-              <li key={plant.accessToken} style={{ marginBottom: "10px" }}>
+              <div
+                key={plant.accessToken}
+                className="history-card"
+                onClick={() => {
+                  setPlantDetails(plant.details);
+                  setTimeout(() => {
+                    const section = document.getElementById("plant-result");
+                    if (section) section.scrollIntoView({ behavior: "smooth" });
+                  }, 100);
+                }}
+                style={{ cursor: "pointer" }}
+              >
                 <p><strong>{plant.details.name}</strong></p>
-                <button onClick={() => deletePlant(plant.accessToken)}>Delete</button>
-              </li>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deletePlant(plant.accessToken);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </div>
