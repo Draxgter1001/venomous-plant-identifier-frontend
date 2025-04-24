@@ -222,6 +222,11 @@ function Home() {
                 style={{ cursor: "pointer" }}
               >
                 <p><strong>{plant.details.name}</strong></p>
+                <img
+                  src={plant.details.image}
+                  alt={plant.details.name}
+                  style={{ maxWidth: "300px", border: "1px solid #ccc" }}
+                />
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
